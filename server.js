@@ -14,20 +14,17 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Seguridad con Helmet
-app.use(helmet());
+// Helmet CSP requerido por FreeCodeCamp
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
       styleSrc: ["'self'"],
-      connectSrc: ["'self'", "https://stock-price-checker-proxy.freecodecamp.rocks"],
-      imgSrc: ["'self'"],
-      objectSrc: ["'none'"]
-    }
+    },
   })
 );
+
 
 // Conexión a MongoDB
 const MONGODB_URI = process.env.DB;
