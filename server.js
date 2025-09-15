@@ -7,7 +7,7 @@ const axios = require('axios');
 
 const app = express();
 
-// Confianza en proxy (necesario en Replit/Heroku para obtener IP real)
+// Confianza en proxy (Replit/Heroku/Render)
 app.set('trust proxy', true);
 
 app.use(cors());
@@ -16,15 +16,22 @@ app.use(express.urlencoded({ extended: true }));
 
 // Helmet CSP requerido por FreeCodeCamp
 app.use(
-  helmet.contentSecurityPolicy({
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'"],
+  helmet({
+    contentSecurityPolicy: {
+      useDefaults: false,   // 🚨 Desactiva defaults extra de Helmet
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
+      },
     },
   })
 );
 
+// Ruta raíz (para que FCC vea la CSP aquí también)
+app.get("/", (req, res) => {
+  res.send("Stock Price Checker API activo 🚀");
+});
 
 // Conexión a MongoDB
 const MONGODB_URI = process.env.DB;
@@ -32,21 +39,21 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true 
   .then(()=> console.log('✅ MongoDB conectado'))
   .catch(err => console.error('❌ Error de MongoDB:', err.message));
 
-// Esquema de acciones con likes
+// Esquema de acciones
 const stockSchema = new mongoose.Schema({
   symbol: { type: String, required: true, uppercase: true, unique: true },
   ips: { type: [String], default: [] }
 });
 const Stock = mongoose.model('Stock', stockSchema);
 
-// Función para obtener precio desde el proxy de FreeCodeCamp
+// Obtener precio de acciones
 async function getStockPrice(symbol) {
   const url = `https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/${symbol}/quote`;
   const res = await axios.get(url);
   return { symbol: res.data.symbol, price: Number(res.data.latestPrice) };
 }
 
-// Ruta principal del reto
+// Endpoint principal
 app.get('/api/stock-prices', async (req, res) => {
   try {
     let { stock, like } = req.query;
@@ -56,10 +63,9 @@ app.get('/api/stock-prices', async (req, res) => {
     if (!stock) return res.status(400).json({ error: 'Stock requerido' });
 
     if (Array.isArray(stock)) {
-      // Caso: 2 acciones
       stock = stock.map(s => s.toUpperCase()).slice(0, 2);
-
       const prices = await Promise.all(stock.map(s => getStockPrice(s)));
+
       const docs = await Promise.all(prices.map(async p => {
         let d = await Stock.findOne({ symbol: p.symbol });
         if (!d) d = new Stock({ symbol: p.symbol });
@@ -77,7 +83,6 @@ app.get('/api/stock-prices', async (req, res) => {
 
       return res.json({ stockData: relLikes });
     } else {
-      // Caso: 1 acción
       stock = stock.toUpperCase();
       const { symbol, price } = await getStockPrice(stock);
 
@@ -96,6 +101,5 @@ app.get('/api/stock-prices', async (req, res) => {
   }
 });
 
-// Iniciar servidor
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor en http://localhost:${PORT}`));
+// Arranque servidor
+const PORT = process.env.PO
