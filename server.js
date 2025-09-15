@@ -7,16 +7,18 @@ const axios = require('axios');
 
 const app = express();
 
-// Confianza en proxy (Replit/Heroku/Render)
+// Confianza en proxy (Render/Heroku/Replit)
 app.set('trust proxy', true);
 
-// Helmet CSP requerido por FreeCodeCamp (con defaults)
+// Helmet CSP requerido por FreeCodeCamp (corrigiendo duplicados)
+const defaultDirectives = helmet.contentSecurityPolicy.getDefaultDirectives();
+
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
-      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'"],
+      ...defaultDirectives,
+      "script-src": ["'self'"], // reemplaza valor por defecto
+      "style-src": ["'self'"],  // reemplaza valor por defecto
     },
   })
 );
@@ -25,7 +27,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Ruta raíz (para que FCC valide CSP aquí también)
+// Ruta raíz (FCC valida CSP aquí también)
 app.get("/", (req, res) => {
   res.send("Stock Price Checker API Activo 🚀");
 });
