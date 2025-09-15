@@ -10,16 +10,13 @@ const app = express();
 // Confianza en proxy (Replit/Heroku/Render)
 app.set('trust proxy', true);
 
-// Helmet CSP requerido por FreeCodeCamp
+// Helmet CSP requerido por FreeCodeCamp (con defaults)
 app.use(
-  helmet({
-    contentSecurityPolicy: {
-      useDefaults: false,   // 🚨 Desactiva defaults extra de Helmet
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'"],
-      },
+  helmet.contentSecurityPolicy({
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
     },
   })
 );
@@ -28,18 +25,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
-
-// Ruta raíz (para que FCC vea la CSP aquí también)
+// Ruta raíz (para que FCC valide CSP aquí también)
 app.get("/", (req, res) => {
-  res.send("Stock Price Checker API activo 🚀");
+  res.send("Stock Price Checker API Activo 🚀");
 });
 
 // Conexión a MongoDB
 const MONGODB_URI = process.env.DB;
-mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(()=> console.log('✅ MongoDB conectado'))
-  .catch(err => console.error('❌ Error de MongoDB:', err.message));
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(()=> console.log('✅ MongoDB conectado'))
+.catch(err => console.error('❌ Error de MongoDB:', err.message));
 
 // Esquema de acciones
 const stockSchema = new mongoose.Schema({
@@ -105,5 +103,4 @@ app.get('/api/stock-prices', async (req, res) => {
 
 // Arranque servidor
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor en puerto ${PORT}`));
-
+app.listen(PORT, () => console.log(`🚀 Servidor escuchando en puerto ${PORT}`));
