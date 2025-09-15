@@ -102,4 +102,6 @@ app.get('/api/stock-prices', async (req, res) => {
 });
 
 // Arranque servidor
-const PORT = process.env.PO
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Servidor en puerto ${PORT}`));
+
