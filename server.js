@@ -10,10 +10,6 @@ const app = express();
 // Confianza en proxy (Replit/Heroku/Render)
 app.set('trust proxy', true);
 
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
 // Helmet CSP requerido por FreeCodeCamp
 app.use(
   helmet({
@@ -27,6 +23,12 @@ app.use(
     },
   })
 );
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
 
 // Ruta raíz (para que FCC vea la CSP aquí también)
 app.get("/", (req, res) => {
